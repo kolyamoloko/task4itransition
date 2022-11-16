@@ -11,7 +11,8 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors()); /* For server/client work */
+app.use(cors());
+app.use('/api', router);
 
 const start = async () => {
     try {

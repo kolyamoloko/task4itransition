@@ -7,7 +7,7 @@ const UserSchema = new Schema({
     status: {type: Boolean},
     dateRegistration: {type: Date},
     dateLastConnection: {type: Date},
-    userBlock: {type: Boolean, default: false},
+    isBlocked: {type: Boolean, default: false},
 })
 
 module.exports = model('User', UserSchema);
