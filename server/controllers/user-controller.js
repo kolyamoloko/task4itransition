@@ -1,3 +1,7 @@
+const { MongoAPIError } = require('mongodb'); 
+const UserDto = require('../dtos/user-dto');
+const userModel = require('../models/user-model');
+const tokenService = require('../service/token-service');
 const userService = require('../service/user-service')
 class UserController {
     async registration(req, res, next){
@@ -14,9 +18,13 @@ class UserController {
 
     async login(req, res, next){
         try {
+            const {email, password} = req.body();
+            const UserData = await userService.login(email, password); 
+            res.cookie('refreshToken', userData.refreshToken, {maxAge: 300 * 24 * 60 * 60 * 1000, httpOnly: true});
+            return res.json(userData);
 
         } catch (e) {
-            
+            console.log(e);
         }
 
     }
@@ -25,7 +33,7 @@ class UserController {
         try {
 
         } catch (e) {
-            
+            console.log(e);
         }
 
     }
@@ -34,7 +42,7 @@ class UserController {
         try {
 
         } catch (e) {
-            
+            console.log(e);
         }
 
 
@@ -43,7 +51,7 @@ class UserController {
         try {
 
         } catch (e) {
-            
+            console.log(e);
         }
 
     }
@@ -52,8 +60,20 @@ class UserController {
         try {
             res.status(200).json(['hello', '456']);
         } catch (e) {
-            
+            console.log(e);
         }
+
+    }
+
+    async login(email, password) {
+        const user = await userModel.findOne({email})
+        if(!user) {
+            console.log('email is not defined')
+        }
+        const userDto = new UserDto(user);
+        const tokens = tokenService.generateTokens({...userDto});
+        await tokenService.saveToken(userDto.id, tokens.refreshToken);
+        return {...tokens, user: userDto}
 
     }
 }
