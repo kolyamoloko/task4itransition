@@ -1,8 +1,6 @@
-const { MongoAPIError } = require('mongodb'); 
-const UserDto = require('../dtos/user-dto');
-const userModel = require('../models/user-model');
-const tokenService = require('../service/token-service');
-const userService = require('../service/user-service')
+const userService = require('../service/user-service');
+const ApiError = require('../exceptions/api-error');
+
 class UserController {
     async registration(req, res, next){
         try {
@@ -11,29 +9,31 @@ class UserController {
             res.cookie('refreshToken', userData.refreshToken, {maxAge: 300 * 24 * 60 * 60 * 1000, httpOnly: true});
             return res.json(userData);
         } catch (e) {
-            console.log(e);
+            next(e);
         }
 
     }
 
     async login(req, res, next){
         try {
-            const {email, password} = req.body();
-            const UserData = await userService.login(email, password); 
-            res.cookie('refreshToken', userData.refreshToken, {maxAge: 300 * 24 * 60 * 60 * 1000, httpOnly: true});
+            const {email, password} = req.body;
+            const userData = await userService.login(email, password);
+            res.cookie('refreshToken', userData.refreshToken, {maxAge: 300 * 24 * 60 * 60 * 1000, httpOnly: true})
             return res.json(userData);
-
         } catch (e) {
-            console.log(e);
+            next(e);
         }
 
     }
 
     async logout(req, res, next){
         try {
-
+            const {refreshToken} = req.cookies;
+            const token = await userService.logout(refreshToken);
+            res.clearCookie('refreshToken');
+            return res.json(token);
         } catch (e) {
-            console.log(e);
+            next(e);
         }
 
     }
@@ -42,39 +42,29 @@ class UserController {
         try {
 
         } catch (e) {
-            console.log(e);
+            next(e);
         }
 
 
     }
-    async refresh(req, res, next){
+    async refresh(req, res, next) {
         try {
-
+            const {refreshToken} = req.cookies;
+            const userData = await userService.refresh(refreshToken);
+            res.cookie('refreshToken', userData.refreshToken, {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true})
+            return res.json(userData);
         } catch (e) {
-            console.log(e);
+            next(e);
         }
-
     }
 
-    async getUsers(req, res, next){
+    async getUsers(req, res, next) {
         try {
-            res.status(200).json(['hello', '456']);
+            const users = await userService.getAllUsers();
+            return res.json(users);
         } catch (e) {
-            console.log(e);
+            next(e);
         }
-
-    }
-
-    async login(email, password) {
-        const user = await userModel.findOne({email})
-        if(!user) {
-            console.log('email is not defined')
-        }
-        const userDto = new UserDto(user);
-        const tokens = tokenService.generateTokens({...userDto});
-        await tokenService.saveToken(userDto.id, tokens.refreshToken);
-        return {...tokens, user: userDto}
-
     }
 }
 
