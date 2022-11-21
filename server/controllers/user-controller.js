@@ -66,6 +66,13 @@ class UserController {
             next(e);
         }
     }
+    
+    async delete(req, res, next) {
+        try {
+        } catch (e) {
+            next(e)
+        }
+    }
 }
 
 module.exports = new UserController();

@@ -1,5 +1,6 @@
 export interface IUser {
     email: string;
     id: string;
-    isBlocked: string;
+    isBlocked: boolean;
+    isActive: boolean;
 }
